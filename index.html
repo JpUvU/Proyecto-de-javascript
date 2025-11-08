@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Document</title>
+        <link rel="stylesheet" href="style.css">
+        <script src="/js/login.js" defer></script>
+    </head>
+    <body>
+    <nav class="navbar">
+        <div class="navbar-logo">
+            <span class="brand-text">LMS ABC</span>
+        </div>
+        <form class="navbar-search">
+            <span class="navbar-search-icon">&#128270;</span>
+            <input type="text" placeholder="¿Qué quieres aprender?" />
+        </form>
+        <ul class="navbar-menu">
+            <li><a href="#">Cursos</a></li>
+            <li><a href="#">Empresas</a></li>
+            <li><a href="#">Precios</a></li>
+        </ul>
+        <div class="navbar-actions">
+            <button class="navbar-btn" id="show-login-btn">iniciar sesión</button>
+            <button class="navbar-btn primary" >Acceder</button>
+        </div>
+    </nav>
+    <!-- MODAL LOGIN PROFESIONAL -->
+    <div class="login-modal" id="loginModal">
+        <div class="login-card">
+            <!-- Panel Izquierdo -->
+            <div class="login-left">
+            <div class="overlay">
+                <h1>LMS ABC</h1>
+                <p>Aprende, crece y comparte conocimiento.</p>
+            </div>
+            </div>
+
+            <!-- Panel Derecho -->
+            <div class="login-right">
+            <button class="close-login" id="closeLoginBtn">×</button>
+            <h2>Iniciar sesión</h2>
+
+            <form id="loginForm">
+                <label for="loginEmail">Correo electrónico</label>
+                <input type="email" id="loginEmail" placeholder="tucorreo@abc.edu" required>
+
+                <label for="loginPassword">Contraseña</label>
+                <div class="input-wrapper">
+                <input type="password" id="loginPassword" placeholder="••••••••" required>
+                <button type="button" class="togglePwd">👁</button>
+                </div>
+
+                <div class="login-options">
+                <label><input type="checkbox" id="rememberMe"> Recuérdame</label>
+                <a href="#" class="forgot">¿Olvidaste tu contraseña?</a>
+                </div>
+
+                <button type="submit" class="btn-primary">Entrar</button>
+
+                <p class="signup-text">
+                ¿No tienes cuenta? <a href="#" id="toSignupLink">Crear cuenta</a>
+                </p>
+
+                <p id="loginError" class="msg-error"></p>
+            </form>
+            </div>
+        </div>
+    </div>
+
+</html>
