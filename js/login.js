@@ -1,158 +1,175 @@
-// =============================
-// ELEMENTOS
-// =============================
-const loginModal = document.getElementById("loginModal");
+
 const showLoginBtn = document.getElementById("show-login-btn");
-const closeLoginBtn = document.getElementById("closeLoginBtn");
-const closeSignupBtn = document.getElementById("closeSignupBtn");
+const showSignupBtn = document.getElementById("show-signup-btn");
 
-const loginPanel = document.getElementById("loginPanel");
-const signupPanel = document.getElementById("signupPanel");
+window.addEventListener("DOMContentLoaded", () => {
+    const authComponent = document.querySelector("auth-modal");
 
-const loginForm = document.getElementById("loginForm");
-const signupForm = document.getElementById("signupForm");
-const loginError = document.getElementById("loginError");
-const signupError = document.getElementById("signupError");
-const togglePwdBtns = document.querySelectorAll(".togglePwd");
+    // Referencias internas del Web Component
+    const shadow = authComponent.shadowRoot;
+    const loginModal = shadow.getElementById("loginModal");
+    const loginPanel = shadow.getElementById("loginPanel");
+    const signupPanel = shadow.getElementById("signupPanel");
+    const closeLoginBtn = shadow.getElementById("closeLoginBtn");
+    const closeSignupBtn = shadow.getElementById("closeSignupBtn");
 
-const toSignupLink = document.getElementById("toSignupLink");
-const toLoginLink = document.getElementById("toLoginLink");
+    const loginForm = shadow.getElementById("loginForm");
+    const signupForm = shadow.getElementById("signupForm");
+    const loginError = shadow.getElementById("loginError");
+    const signupError = shadow.getElementById("signupError");
+    const togglePwdBtns = shadow.querySelectorAll(".togglePwd");
 
-// =============================
-// SERVICIO DE AUTENTICACIÓN
-// =============================
-class AuthService {
-    static getAdmins() {
-        return JSON.parse(localStorage.getItem("admins")) || [];
+    const toSignupLink = shadow.getElementById("toSignupLink");
+    const toLoginLink = shadow.getElementById("toLoginLink");
+
+
+    class AuthService {
+        static getAdmins() {
+            return JSON.parse(localStorage.getItem("admins")) || [];
+        }
+        static saveAdmins(admins) {
+            localStorage.setItem("admins", JSON.stringify(admins));
+        }
+        static addAdmin(admin) {
+            const admins = this.getAdmins();
+            admins.push(admin);
+            this.saveAdmins(admins);
+        }
+        static validate(email, password) {
+            return this.getAdmins().find(
+                (u) => u.email === email && u.password === password
+            );
+        }
     }
 
-    static saveAdmins(admins) {
-        localStorage.setItem("admins", JSON.stringify(admins));
-    }
+    // =============================
+    // ABRIR / CERRAR MODAL
+    // =============================
+    const openModal = (showSignup = false) => {
+        loginModal.classList.add("show");
+        document.body.style.overflow = "hidden";
+        if (showSignup) {
+            loginPanel.classList.remove("show");
+            signupPanel.classList.add("show");
+        } else {
+            signupPanel.classList.remove("show");
+            loginPanel.classList.add("show");
+        }
+    };
 
-    static addAdmin(admin) {
-        const admins = this.getAdmins();
-        admins.push(admin);
-        this.saveAdmins(admins);
-    }
+    const closeModal = () => {
+        loginModal.classList.remove("show");
+        document.body.style.overflow = "";
+    };
 
-    static validate(email, password) {
-        return this.getAdmins().find(
-            (u) => u.email === email && u.password === password
-        );
-    }
-}
+    // Exponer controles globales
+    window.authModal = {
+        showLogin: () => openModal(false),
+        showSignup: () => openModal(true),
+        close: closeModal
+    };
 
-// =============================
-// ABRIR / CERRAR MODAL
-// =============================
-showLoginBtn?.addEventListener("click", () => {
-    loginModal.classList.add("show");
-    document.body.style.overflow = "hidden";
-});
+    // Botones navbar
+    showLoginBtn?.addEventListener("click", () => openModal(false));
+    showSignupBtn?.addEventListener("click", () => openModal(true));
 
-const closeModal = () => {
-    loginModal.classList.remove("show");
-    document.body.style.overflow = "";
-};
+    // Botones cerrar
+    closeLoginBtn?.addEventListener("click", closeModal);
+    closeSignupBtn?.addEventListener("click", closeModal);
 
-closeLoginBtn?.addEventListener("click", closeModal);
-closeSignupBtn?.addEventListener("click", closeModal);
-
-// Cerrar con tecla ESC
-document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeModal();
-});
-
-// Cerrar al hacer clic fuera del cuadro
-loginModal?.addEventListener("click", (e) => {
-    const container = document.querySelector(".login-container");
-    if (!container.contains(e.target)) closeModal();
-});
-
-// =============================
-// MOSTRAR / OCULTAR CONTRASEÑA
-// =============================
-togglePwdBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-        const input = btn.previousElementSibling;
-        input.type = input.type === "password" ? "text" : "password";
-        btn.textContent = input.type === "password" ? "👁" : "👁";
+    // Cerrar con tecla ESC
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
     });
-});
 
-// =============================
-// REGISTRO DE NUEVO USUARIO
-// =============================
-signupForm?.addEventListener("submit", (e) => {
-    e.preventDefault();
+    // Cerrar al hacer clic fuera del cuadro
+    loginModal?.addEventListener("click", (e) => {
+        const container = shadow.querySelector(".login-container");
+        if (!container.contains(e.target)) closeModal();
+    });
 
-    const name = document.getElementById("signupName").value.trim();
-    const study = document.getElementById("signupStudy").value.trim();
-    const email = document.getElementById("signupEmail").value.trim();
-    const pwd = document.getElementById("signupPassword").value;
+    // =============================
+    // MOSTRAR / OCULTAR CONTRASEÑA
+    // =============================
+    togglePwdBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const input = btn.previousElementSibling;
+            input.type = input.type === "password" ? "text" : "password";
+            btn.textContent = input.type === "password" ? "👁" : "🙈";
+        });
+    });
 
-    if (!name || !study || !email || !pwd) {
-        signupError.textContent = "⚠️ Por favor completa todos los campos.";
-        signupForm.classList.add("shake");
-        setTimeout(() => signupForm.classList.remove("shake"), 600);
-        return;
-    }
+    // =============================
+    // REGISTRO DE NUEVO USUARIO
+    // =============================
+    signupForm?.addEventListener("submit", (e) => {
+        e.preventDefault();
 
-    const admins = AuthService.getAdmins();
-    if (admins.some((a) => a.email === email)) {
-        signupError.textContent = "⚠️ Ya existe una cuenta con ese correo.";
-        signupForm.classList.add("shake");
-        setTimeout(() => signupForm.classList.remove("shake"), 600);
-        return;
-    }
+        const name = shadow.getElementById("signupName").value.trim();
+        const study = shadow.getElementById("signupStudy").value.trim();
+        const email = shadow.getElementById("signupEmail").value.trim();
+        const pwd = shadow.getElementById("signupPassword").value;
 
-    const newAdmin = { name, study, email, password: pwd };
-    AuthService.addAdmin(newAdmin);
+        if (!name || !study || !email || !pwd) {
+            signupError.textContent = " Por favor completa todos los campos.";
+            signupForm.classList.add("shake");
+            setTimeout(() => signupForm.classList.remove("shake"), 600);
+            return;
+        }
 
-    signupForm.reset();
-    signupError.textContent = "";
-    loginError.textContent = "✅ Cuenta creada. Inicia sesión.";
+        const admins = AuthService.getAdmins();
+        if (admins.some((a) => a.email === email)) {
+            signupError.textContent = " Ya existe una cuenta con ese correo.";
+            signupForm.classList.add("shake");
+            setTimeout(() => signupForm.classList.remove("shake"), 600);
+            return;
+        }
 
-    // Transición suave al panel de login
-    signupPanel.classList.remove("show");
-    loginPanel.classList.add("show");
-});
+        const newAdmin = { name, study, email, password: pwd };
+        AuthService.addAdmin(newAdmin);
 
-// =============================
-// LOGIN DE USUARIO
-// =============================
-loginForm?.addEventListener("submit", (e) => {
-    e.preventDefault();
+        signupForm.reset();
+        signupError.textContent = "";
+        loginError.textContent = " Cuenta creada. Inicia sesión.";
 
-    const email = document.getElementById("loginEmail").value.trim();
-    const pwd = document.getElementById("loginPassword").value;
-    const user = AuthService.validate(email, pwd);
+        signupPanel.classList.remove("show");
+        loginPanel.classList.add("show");
+    });
 
-    if (user) {
-        localStorage.setItem("loggedInAdmin", JSON.stringify(user));
-        loginError.textContent = "";
-        alert(`✅ Bienvenido ${user.name || "Administrador"}`);
-        closeModal();
-        // window.location.href = 'dashboard.html';
-    } else {
-        loginError.textContent = "❌ Email o contraseña incorrectos.";
-        loginForm.classList.add("shake");
-        setTimeout(() => loginForm.classList.remove("shake"), 600);
-    }
-});
+    // =============================
+    // LOGIN DE USUARIO
+    // =============================
+    loginForm?.addEventListener("submit", (e) => {
+        e.preventDefault();
 
-// =============================
-// CAMBIO ENTRE LOGIN Y SIGNUP
-// =============================
-toSignupLink?.addEventListener("click", (e) => {
-    e.preventDefault();
-    loginPanel.classList.remove("show");
-    signupPanel.classList.add("show");
-});
+        const email = shadow.getElementById("loginEmail").value.trim();
+        const pwd = shadow.getElementById("loginPassword").value;
+        const user = AuthService.validate(email, pwd);
 
-toLoginLink?.addEventListener("click", (e) => {
-    e.preventDefault();
-    signupPanel.classList.remove("show");
-    loginPanel.classList.add("show");
+        if (user) {
+            localStorage.setItem("loggedInAdmin", JSON.stringify(user));
+            loginError.textContent = "";
+            alert(` Bienvenido ${user.name || "Administrador"}`);
+            closeModal();
+        } else {
+            loginError.textContent = " Email o contraseña incorrectos.";
+            loginForm.classList.add("shake");
+            setTimeout(() => loginForm.classList.remove("shake"), 600);
+        }
+    });
+
+    // =============================
+    // CAMBIO ENTRE LOGIN Y SIGNUP
+    // =============================
+    toSignupLink?.addEventListener("click", (e) => {
+        e.preventDefault();
+        loginPanel.classList.remove("show");
+        signupPanel.classList.add("show");
+    });
+
+    toLoginLink?.addEventListener("click", (e) => {
+        e.preventDefault();
+        signupPanel.classList.remove("show");
+        loginPanel.classList.add("show");
+    });
 });
