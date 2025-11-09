@@ -1,11 +1,10 @@
-
 const showLoginBtn = document.getElementById("show-login-btn");
 const showSignupBtn = document.getElementById("show-signup-btn");
 
 window.addEventListener("DOMContentLoaded", () => {
     const authComponent = document.querySelector("auth-modal");
+    if (!authComponent) return;
 
-    // Referencias internas del Web Component
     const shadow = authComponent.shadowRoot;
     const loginModal = shadow.getElementById("loginModal");
     const loginPanel = shadow.getElementById("loginPanel");
@@ -22,28 +21,29 @@ window.addEventListener("DOMContentLoaded", () => {
     const toSignupLink = shadow.getElementById("toSignupLink");
     const toLoginLink = shadow.getElementById("toLoginLink");
 
-
+    // =============================
+    // SERVICIO DE AUTENTICACIÓN
+    // =============================
     class AuthService {
-        static getAdmins() {
-            return JSON.parse(localStorage.getItem("admins")) || [];
+        static getUsers() {
+            const data = JSON.parse(localStorage.getItem("lmsData")) || { users: [] };
+            return data.users;
         }
-        static saveAdmins(admins) {
-            localStorage.setItem("admins", JSON.stringify(admins));
+
+        static addUser(newUser) {
+            const data = JSON.parse(localStorage.getItem("lmsData")) || { users: [], courses: [] };
+            data.users.push(newUser);
+            localStorage.setItem("lmsData", JSON.stringify(data));
         }
-        static addAdmin(admin) {
-            const admins = this.getAdmins();
-            admins.push(admin);
-            this.saveAdmins(admins);
-        }
+
         static validate(email, password) {
-            return this.getAdmins().find(
-                (u) => u.email === email && u.password === password
-            );
+            const users = this.getUsers();
+            return users.find(u => u.email === email && u.password === password);
         }
     }
 
     // =============================
-    // ABRIR / CERRAR MODAL
+    // CONTROL MODAL
     // =============================
     const openModal = (showSignup = false) => {
         loginModal.classList.add("show");
@@ -62,7 +62,7 @@ window.addEventListener("DOMContentLoaded", () => {
         document.body.style.overflow = "";
     };
 
-    // Exponer controles globales
+    // Métodos globales para abrir/cerrar desde otros scripts
     window.authModal = {
         showLogin: () => openModal(false),
         showSignup: () => openModal(true),
@@ -73,16 +73,10 @@ window.addEventListener("DOMContentLoaded", () => {
     showLoginBtn?.addEventListener("click", () => openModal(false));
     showSignupBtn?.addEventListener("click", () => openModal(true));
 
-    // Botones cerrar
+    // Cerrar modal
     closeLoginBtn?.addEventListener("click", closeModal);
     closeSignupBtn?.addEventListener("click", closeModal);
-
-    // Cerrar con tecla ESC
-    document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") closeModal();
-    });
-
-    // Cerrar al hacer clic fuera del cuadro
+    document.addEventListener("keydown", (e) => e.key === "Escape" && closeModal());
     loginModal?.addEventListener("click", (e) => {
         const container = shadow.querySelector(".login-container");
         if (!container.contains(e.target)) closeModal();
@@ -95,7 +89,6 @@ window.addEventListener("DOMContentLoaded", () => {
         btn.addEventListener("click", () => {
             const input = btn.previousElementSibling;
             input.type = input.type === "password" ? "text" : "password";
-            btn.textContent = input.type === "password" ? "👁" : "🙈";
         });
     });
 
@@ -111,27 +104,34 @@ window.addEventListener("DOMContentLoaded", () => {
         const pwd = shadow.getElementById("signupPassword").value;
 
         if (!name || !study || !email || !pwd) {
-            signupError.textContent = " Por favor completa todos los campos.";
+            signupError.textContent = "⚠️ Por favor completa todos los campos.";
             signupForm.classList.add("shake");
             setTimeout(() => signupForm.classList.remove("shake"), 600);
             return;
         }
 
-        const admins = AuthService.getAdmins();
-        if (admins.some((a) => a.email === email)) {
-            signupError.textContent = " Ya existe una cuenta con ese correo.";
+        const users = AuthService.getUsers();
+        if (users.some((u) => u.email === email)) {
+            signupError.textContent = "⚠️ Ya existe una cuenta con ese correo.";
             signupForm.classList.add("shake");
             setTimeout(() => signupForm.classList.remove("shake"), 600);
             return;
         }
 
-        const newAdmin = { name, study, email, password: pwd };
-        AuthService.addAdmin(newAdmin);
+        // Nuevo usuario con rol estudiante por defecto
+        const newUser = {
+            id: Date.now(),
+            name,
+            study,
+            email,
+            password: pwd,
+            role: "estudiante"
+        };
 
+        AuthService.addUser(newUser);
         signupForm.reset();
         signupError.textContent = "";
-        loginError.textContent = " Cuenta creada. Inicia sesión.";
-
+        loginError.textContent = "✅ Cuenta creada. Inicia sesión.";
         signupPanel.classList.remove("show");
         loginPanel.classList.add("show");
     });
@@ -149,10 +149,15 @@ window.addEventListener("DOMContentLoaded", () => {
         if (user) {
             localStorage.setItem("loggedInAdmin", JSON.stringify(user));
             loginError.textContent = "";
-            alert(` Bienvenido ${user.name || "Administrador"}`);
+            alert(`✅ Bienvenido ${user.name || "Usuario"}`);
             closeModal();
+
+            // Redirección opcional por rol
+            if (["maestro", "administrador", "abmin"].includes(user.role)) {
+                document.querySelector("course-admin-panel")?.render?.();
+            }
         } else {
-            loginError.textContent = " Email o contraseña incorrectos.";
+            loginError.textContent = "❌ Email o contraseña incorrectos.";
             loginForm.classList.add("shake");
             setTimeout(() => loginForm.classList.remove("shake"), 600);
         }
