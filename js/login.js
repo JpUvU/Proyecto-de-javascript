@@ -1,34 +1,44 @@
 // =============================
-// ELEMENTOS PRINCIPALES
+// ELEMENTOS
 // =============================
-const loginModal = document.getElementById('loginModal');
-const showLoginBtn = document.getElementById('show-login-btn');
-const closeLoginBtn = document.getElementById('closeLoginBtn');
+const loginModal = document.getElementById("loginModal");
+const showLoginBtn = document.getElementById("show-login-btn");
+const closeLoginBtn = document.getElementById("closeLoginBtn");
+const closeSignupBtn = document.getElementById("closeSignupBtn");
 
-const loginForm = document.getElementById('loginForm');
-const signupForm = document.getElementById('signupForm');
-const loginError = document.getElementById('loginError');
-const signupError = document.getElementById('signupError');
-const togglePwdBtns = document.querySelectorAll('.togglePwd');
+const loginPanel = document.getElementById("loginPanel");
+const signupPanel = document.getElementById("signupPanel");
+
+const loginForm = document.getElementById("loginForm");
+const signupForm = document.getElementById("signupForm");
+const loginError = document.getElementById("loginError");
+const signupError = document.getElementById("signupError");
+const togglePwdBtns = document.querySelectorAll(".togglePwd");
+
+const toSignupLink = document.getElementById("toSignupLink");
+const toLoginLink = document.getElementById("toLoginLink");
 
 // =============================
 // SERVICIO DE AUTENTICACIÓN
 // =============================
 class AuthService {
     static getAdmins() {
-        return JSON.parse(localStorage.getItem('admins')) || [];
+        return JSON.parse(localStorage.getItem("admins")) || [];
     }
+
     static saveAdmins(admins) {
-        localStorage.setItem('admins', JSON.stringify(admins));
+        localStorage.setItem("admins", JSON.stringify(admins));
     }
-    static addAdmin(email, password) {
+
+    static addAdmin(admin) {
         const admins = this.getAdmins();
-        admins.push({ email, password });
+        admins.push(admin);
         this.saveAdmins(admins);
     }
+
     static validate(email, password) {
         return this.getAdmins().find(
-        (u) => u.email === email && u.password === password
+            (u) => u.email === email && u.password === password
         );
     }
 }
@@ -36,106 +46,113 @@ class AuthService {
 // =============================
 // ABRIR / CERRAR MODAL
 // =============================
-if (showLoginBtn) {
-    showLoginBtn.addEventListener('click', () => {
-        loginModal.classList.add('show');
-        document.body.style.overflow = 'hidden';
-    });
-    }
+showLoginBtn?.addEventListener("click", () => {
+    loginModal.classList.add("show");
+    document.body.style.overflow = "hidden";
+});
 
-    if (closeLoginBtn) {
-    closeLoginBtn.addEventListener('click', () => {
-        loginModal.classList.remove('show');
-        document.body.style.overflow = '';
-    });
-}
+const closeModal = () => {
+    loginModal.classList.remove("show");
+    document.body.style.overflow = "";
+};
 
-document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') loginModal.classList.remove('show');
+closeLoginBtn?.addEventListener("click", closeModal);
+closeSignupBtn?.addEventListener("click", closeModal);
+
+// Cerrar con tecla ESC
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeModal();
+});
+
+// Cerrar al hacer clic fuera del cuadro
+loginModal?.addEventListener("click", (e) => {
+    const container = document.querySelector(".login-container");
+    if (!container.contains(e.target)) closeModal();
 });
 
 // =============================
 // MOSTRAR / OCULTAR CONTRASEÑA
 // =============================
 togglePwdBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener("click", () => {
         const input = btn.previousElementSibling;
-        input.type = input.type === 'password' ? 'text' : 'password';
-        btn.textContent = input.type === 'password' ? '👁' : '🙈';
+        input.type = input.type === "password" ? "text" : "password";
+        btn.textContent = input.type === "password" ? "👁" : "👁";
     });
 });
 
 // =============================
-// REGISTRO DE USUARIO
+// REGISTRO DE NUEVO USUARIO
 // =============================
-if (signupForm) {
-    signupForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('signupEmail').value.trim();
-        const pwd = document.getElementById('signupPassword').value;
-        const pwd2 = document.getElementById('signupPassword2').value;
+signupForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-        if (pwd !== pwd2) {
-        signupError.textContent = ' Las contraseñas no coinciden.';
+    const name = document.getElementById("signupName").value.trim();
+    const study = document.getElementById("signupStudy").value.trim();
+    const email = document.getElementById("signupEmail").value.trim();
+    const pwd = document.getElementById("signupPassword").value;
+
+    if (!name || !study || !email || !pwd) {
+        signupError.textContent = "⚠️ Por favor completa todos los campos.";
+        signupForm.classList.add("shake");
+        setTimeout(() => signupForm.classList.remove("shake"), 600);
         return;
-        }
+    }
 
-        const admins = AuthService.getAdmins();
-        if (admins.some((a) => a.email === email)) {
-        signupError.textContent = ' Ya existe una cuenta con ese email.';
+    const admins = AuthService.getAdmins();
+    if (admins.some((a) => a.email === email)) {
+        signupError.textContent = "⚠️ Ya existe una cuenta con ese correo.";
+        signupForm.classList.add("shake");
+        setTimeout(() => signupForm.classList.remove("shake"), 600);
         return;
-        }
+    }
 
-        AuthService.addAdmin(email, pwd);
-        signupForm.reset();
-        signupError.textContent = '';
-        loginError.textContent = ' Cuenta creada. Inicia sesión.';
-        document.querySelector('.login-card').classList.remove('show-signup');
-    });
-}
+    const newAdmin = { name, study, email, password: pwd };
+    AuthService.addAdmin(newAdmin);
+
+    signupForm.reset();
+    signupError.textContent = "";
+    loginError.textContent = "✅ Cuenta creada. Inicia sesión.";
+
+    // Transición suave al panel de login
+    signupPanel.classList.remove("show");
+    loginPanel.classList.add("show");
+});
 
 // =============================
 // LOGIN DE USUARIO
 // =============================
-if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const email = document.getElementById('loginEmail').value.trim();
-        const pwd = document.getElementById('loginPassword').value;
-        const user = AuthService.validate(email, pwd);
+loginForm?.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-        if (user) {
-        localStorage.setItem('loggedInAdmin', JSON.stringify(user));
-        loginError.textContent = '';
-        alert('✅ Bienvenido, acceso correcto');
-        // Aquí puedes redirigir al dashboard
+    const email = document.getElementById("loginEmail").value.trim();
+    const pwd = document.getElementById("loginPassword").value;
+    const user = AuthService.validate(email, pwd);
+
+    if (user) {
+        localStorage.setItem("loggedInAdmin", JSON.stringify(user));
+        loginError.textContent = "";
+        alert(`✅ Bienvenido ${user.name || "Administrador"}`);
+        closeModal();
         // window.location.href = 'dashboard.html';
-        loginModal.classList.remove('show');
-        } else {
-        loginError.textContent = '❌ Email o contraseña incorrectos.';
-        loginForm.classList.add('shake');
-        setTimeout(() => loginForm.classList.remove('shake'), 600);
-        }
-    });
-}
-
-// =============================
-// CAMBIO ENTRE LOGIN / SIGNUP
-// =============================
-const toSignupLink = document.getElementById('toSignupLink');
-const toLoginLink = document.getElementById('toLoginLink');
-
-if (toSignupLink) {
-    toSignupLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        document.querySelector('.login-card').classList.add('show-signup');
-        loginError.textContent = '';
-    });
+    } else {
+        loginError.textContent = "❌ Email o contraseña incorrectos.";
+        loginForm.classList.add("shake");
+        setTimeout(() => loginForm.classList.remove("shake"), 600);
     }
-    if (toLoginLink) {
-    toLoginLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        document.querySelector('.login-card').classList.remove('show-signup');
-        signupError.textContent = '';
-    });
-}
+});
+
+// =============================
+// CAMBIO ENTRE LOGIN Y SIGNUP
+// =============================
+toSignupLink?.addEventListener("click", (e) => {
+    e.preventDefault();
+    loginPanel.classList.remove("show");
+    signupPanel.classList.add("show");
+});
+
+toLoginLink?.addEventListener("click", (e) => {
+    e.preventDefault();
+    signupPanel.classList.remove("show");
+    loginPanel.classList.add("show");
+});

@@ -1,5 +1,5 @@
 /* ==============================
-    RESETEO Y BASE
+    RESET Y BASE
 ============================== */
 * {
     box-sizing: border-box;
@@ -57,7 +57,6 @@ body {
 .navbar-search:hover {
     box-shadow: 0 0 10px rgba(34, 231, 132, 0.2);
 }
-
 .navbar-search-icon {
     color: #22e784;
     font-size: 20px;
@@ -120,138 +119,125 @@ body {
 }
 
 /* ==============================
-    MODAL LOGIN PROFESIONAL
+   MODAL PRINCIPAL
 ============================== */
 .login-modal {
     position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
+    inset: 0;
     display: none;
     justify-content: center;
     align-items: center;
     background: rgba(10, 15, 18, 0.88);
     backdrop-filter: blur(6px);
     z-index: 1003;
-    animation: fadeIn 0.3s ease;
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 .login-modal.show {
     display: flex;
     opacity: 1;
+    transform: scale(1);
 }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.95); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.login-card {
+/* ==============================
+   CONTENEDOR PRINCIPAL
+============================== */
+.login-container {
+    position: relative;
+    width: 880px;
+    max-width: 95%;
+    height: 540px;
     display: flex;
-    width: 850px;
-    max-width: 94%;
-    height: 520px;
-    background: #0f171b;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 0 40px rgba(34, 231, 132, 0.15);
-    animation: slideUp 0.5s ease;
+    background: #0f171b;
+    box-shadow: 0 0 40px rgba(34, 231, 132, 0.15),
+                0 0 80px rgba(34, 231, 132, 0.05);
+    transition: all 0.6s ease;
+    animation: slideIn 0.6s ease forwards;
 }
-@keyframes slideUp {
-    from { transform: translateY(40px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(40px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Panel izquierdo (imagen) */
-.login-left {
-    flex: 1.2;
-    background: url('https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80')
-                center/cover no-repeat;
-    position: relative;
-}
-.login-left::after {
-    content: "";
+/* ==============================
+   PANELES LOGIN / REGISTRO
+============================== */
+.panel {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, rgba(20,30,36,0.2), rgba(20,30,36,0.9));
+    display: flex;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(40px);
+    transition: all 0.7s cubic-bezier(.77,0,.18,1);
 }
-.login-left .overlay {
-    position: absolute;
-    bottom: 36px;
-    left: 32px;
-    z-index: 2;
-}
-.login-left h1 {
-    color: #22e784;
-    font-size: 2.2rem;
-    font-weight: 800;
-    margin-bottom: 8px;
-}
-.login-left p {
-    color: #b5f7d4;
-    font-size: 1rem;
+.panel.show {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateX(0);
 }
 
-/* Panel derecho */
-.login-right {
+/* ==============================
+   IMÁGENES DE PANEL
+============================== */
+.panel-image {
+    flex: 1.2;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.85);
+    transition: transform 0.6s ease;
+}
+.panel.show .panel-image {
+    transform: scale(1.05);
+}
+
+/* ==============================
+   FORMULARIOS DE PANEL
+============================== */
+.panel-content {
     flex: 1;
-    background: rgba(20, 30, 36, 0.85);
-    backdrop-filter: blur(12px);
     padding: 50px 48px;
+    background: rgba(20, 30, 36, 0.96);
     display: flex;
     flex-direction: column;
     justify-content: center;
     position: relative;
-    border-left: 1px solid rgba(34, 231, 132, 0.15);
+    box-shadow: inset 0 0 15px rgba(34, 231, 132, 0.05);
 }
-
-.login-right h2 {
+.panel-content h2 {
     color: #22e784;
+    font-size: 1.9rem;
     text-align: center;
     margin-bottom: 28px;
-    font-size: 1.7rem;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 10px rgba(34, 231, 132, 0.4);
 }
 
-/* Botón cerrar */
-.close-login {
-    position: absolute;
-    top: 18px;
-    right: 22px;
-    background: none;
-    border: none;
-    color: #22e784;
-    font-size: 1.8rem;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-.close-login:hover {
-    color: #fff;
-}
-
-/* ==============================
-    FORMULARIO LOGIN
-============================== */
-label {
+/* Campos */
+.panel-content label {
     color: #b5f7d4;
     font-weight: 500;
-    margin-bottom: 6px;
-    display: block;
+    margin: 10px 0 4px;
 }
-input[type="email"], input[type="password"] {
+.panel-content input {
     width: 100%;
-    background: #1a2025;
-    border: 1px solid #1f2a32;
-    border-radius: 8px;
     padding: 12px;
+    border-radius: 8px;
+    border: 1.5px solid #1f2a32;
+    background: #1a2025;
     color: #fff;
     font-size: 15px;
-    outline: none;
-    margin-bottom: 18px;
-    transition: border-color 0.25s ease;
+    margin-bottom: 14px;
+    transition: all 0.25s ease;
 }
-input:focus {
+.panel-content input:focus {
     border-color: #22e784;
+    box-shadow: 0 0 6px rgba(34, 231, 132, 0.3);
 }
 
+/* Mostrar / ocultar contraseña */
 .input-wrapper {
     position: relative;
 }
@@ -271,7 +257,47 @@ input:focus {
     color: #22e784;
 }
 
-/* Opciones */
+/* ==============================
+   BOTONES Y LINKS
+============================== */
+.btn-primary {
+    width: 100%;
+    padding: 12px 0;
+    background: linear-gradient(90deg, #22e784, #20c877);
+    color: #141e24;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 0 10px rgba(34, 231, 132, 0.2);
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0 18px rgba(34, 231, 132, 0.4);
+}
+
+.switch-text {
+    text-align: center;
+    color: #bbb;
+    font-size: 0.9rem;
+    margin-top: 14px;
+}
+.switch-text a {
+    color: #22e784;
+    text-decoration: none;
+    font-weight: 700;
+    transition: color 0.2s, text-shadow 0.2s;
+}
+.switch-text a:hover {
+    color: #23f594;
+    text-shadow: 0 0 8px #22e784;
+}
+
+/* ==============================
+   OPCIONES LOGIN
+============================== */
 .login-options {
     display: flex;
     justify-content: space-between;
@@ -288,40 +314,9 @@ input:focus {
     text-decoration: underline;
 }
 
-/* Botón principal */
-.btn-primary {
-    background: linear-gradient(90deg, #22e784, #20c877);
-    color: #141e24;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 0;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: transform 0.15s, box-shadow 0.2s;
-}
-.btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(34, 231, 132, 0.3);
-}
-
-/* Texto inferior */
-.signup-text {
-    text-align: center;
-    margin-top: 18px;
-    font-size: 0.9rem;
-    color: #bbb;
-}
-.signup-text a {
-    color: #22e784;
-    font-weight: 600;
-    text-decoration: none;
-}
-.signup-text a:hover {
-    text-decoration: underline;
-}
-
-/* Mensajes de error */
+/* ==============================
+   MENSAJES Y ERRORES
+============================== */
 .msg-error {
     text-align: center;
     color: #ff8a7e;
@@ -330,7 +325,28 @@ input:focus {
 }
 
 /* ==============================
-    ANIMACIONES Y RESPONSIVE
+   BOTÓN CERRAR (❌)
+============================== */
+.close-login {
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    background: none;
+    border: none;
+    color: #22e784;
+    font-size: 1.8rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.25s ease;
+}
+.close-login:hover {
+    color: #23f594;
+    transform: scale(1.15);
+    text-shadow: 0 0 12px #22e784;
+}
+
+/* ==============================
+   EFECTOS Y ANIMACIONES
 ============================== */
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -341,6 +357,9 @@ input:focus {
     animation: shake 0.5s;
 }
 
+/* ==============================
+   RESPONSIVE
+============================== */
 @media (max-width: 900px) {
     .navbar {
         flex-wrap: wrap;
@@ -360,22 +379,15 @@ input:focus {
     }
 }
 
-@media (max-width: 780px) {
-    .login-card {
+@media (max-width: 850px) {
+    .login-container {
         flex-direction: column;
         height: auto;
-        width: 94%;
     }
-    .login-left {
-        height: 180px;
+    .panel-image {
+        display: none;
     }
-    .login-right {
-        padding: 36px 28px;
-    }
-}
-
-@media (max-width: 550px) {
-    .login-right input {
-        font-size: 15px;
+    .panel-content {
+        padding: 40px 30px;
     }
 }
