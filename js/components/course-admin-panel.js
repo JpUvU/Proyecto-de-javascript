@@ -20,7 +20,7 @@ class CourseAdminPanel extends HTMLElement {
 
     const userCourses =
       user.role === "maestro"
-        ? courses.filter(c => c.teacherId === user.id)
+        ? courses.filter(c => this.courseHasTeacher(c, user.id))
         : courses; 
 
     this.shadowRoot.innerHTML = `
@@ -86,7 +86,7 @@ class CourseAdminPanel extends HTMLElement {
                   <th>ID</th>
                   <th>Título</th>
                   <th>Descripción</th>
-                  <th>Autor</th>
+                  <th>Docente(s)</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
@@ -98,7 +98,7 @@ class CourseAdminPanel extends HTMLElement {
                     <td>${c.id}</td>
                     <td>${c.title}</td>
                     <td>${c.description}</td>
-                    <td>${c.teacherName || "N/A"}</td>
+                    <td>${this.formatTeacherNames(c)}</td>
                     <td>
                       <button class="edit" data-id="${c.id}">Editar</button>
                       <button class="delete" data-id="${c.id}">Eliminar</button>
@@ -136,10 +136,7 @@ class CourseAdminPanel extends HTMLElement {
     const course = data.courses.find(c => c.id === id);
 
     // Validación de permisos
-    if (
-      user.role === "maestro" &&
-      course.teacherId !== user.id
-    ) {
+    if (user.role === "maestro" && !this.courseHasTeacher(course, user.id)) {
       alert("❌ No puedes eliminar cursos de otros maestros.");
       return;
     }
@@ -147,6 +144,7 @@ class CourseAdminPanel extends HTMLElement {
     data.courses = data.courses.filter(c => c.id !== id);
     localStorage.setItem("lmsData", JSON.stringify(data));
     alert(" Curso eliminado.");
+    document.querySelector("admin-profile")?.render?.();
     this.render();
   }
 
@@ -154,24 +152,67 @@ class CourseAdminPanel extends HTMLElement {
     const data = JSON.parse(localStorage.getItem("lmsData"));
     const course = data.courses.find(c => c.id === id);
 
-    if (
-      user.role === "maestro" &&
-      course.teacherId !== user.id
-    ) {
+    if (user.role === "maestro" && !this.courseHasTeacher(course, user.id)) {
       alert(" No puedes editar cursos de otros maestros.");
       return;
     }
 
     const newTitle = prompt("Nuevo título del curso:", course.title);
     const newDesc = prompt("Nueva descripción:", course.description);
+    const teacherIdsRaw = prompt(
+      "IDs de docentes separados por coma (deja vacío para mantener los actuales):",
+      this.normalizeTeachers(course).map(t => t.id).filter(Boolean).join(",")
+    );
 
     if (newTitle && newDesc) {
       course.title = newTitle;
       course.description = newDesc;
+
+      if (teacherIdsRaw !== null && teacherIdsRaw.trim() !== "") {
+        const ids = teacherIdsRaw
+          .split(",")
+          .map(v => parseInt(v.trim(), 10))
+          .filter(id => !Number.isNaN(id));
+        const teachers = data.users.filter(u => ids.includes(u.id)).map(u => ({ id: u.id, name: u.name }));
+        if (teachers.length) {
+          course.teachers = teachers;
+          course.teacherId = teachers[0].id;
+          course.teacherName = teachers.map(t => t.name).join(", ");
+        }
+      }
+
       localStorage.setItem("lmsData", JSON.stringify(data));
       alert(" Curso actualizado correctamente.");
+      document.querySelector("course-list")?.connectedCallback?.();
+      document.querySelector("admin-profile")?.render?.();
       this.render();
     }
+  }
+
+  courseHasTeacher(course, teacherId) {
+    if (!teacherId) return false;
+    return this.normalizeTeachers(course).some(t => t.id === teacherId);
+  }
+
+  formatTeacherNames(course) {
+    const teachers = this.normalizeTeachers(course);
+    if (teachers.length) {
+      return teachers.map(t => t.name).join(", ");
+    }
+    return course?.teacherName || "Sin asignar";
+  }
+
+  normalizeTeachers(course) {
+    if (Array.isArray(course?.teachers) && course.teachers.length) {
+      return course.teachers;
+    }
+    if (course?.teacherId || course?.teacherName) {
+      return [{
+        id: course.teacherId ?? null,
+        name: course.teacherName || "Sin asignar"
+      }];
+    }
+    return [];
   }
 }
 

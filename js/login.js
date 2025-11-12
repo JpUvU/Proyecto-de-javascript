@@ -102,6 +102,7 @@ window.addEventListener("DOMContentLoaded", () => {
         const study = shadow.getElementById("signupStudy").value.trim();
         const email = shadow.getElementById("signupEmail").value.trim();
         const pwd = shadow.getElementById("signupPassword").value;
+        const adminCode = shadow.getElementById("signupAdminCode").value.trim();
 
         if (!name || !study || !email || !pwd) {
             signupError.textContent = "⚠️ Por favor completa todos los campos.";
@@ -118,22 +119,38 @@ window.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
-        // Nuevo usuario con rol estudiante por defecto
+        let role = "estudiante";
+        if (adminCode.toUpperCase() === "ADMIN123") role = "administrador";
+        if (adminCode.toUpperCase() === "ABMIN123") role = "abmin";
+
+        // Nuevo usuario con rol según código (si aplica)
         const newUser = {
             id: Date.now(),
             name,
             study,
             email,
             password: pwd,
-            role: "estudiante"
+            role
         };
 
         AuthService.addUser(newUser);
         signupForm.reset();
         signupError.textContent = "";
-        loginError.textContent = "✅ Cuenta creada. Inicia sesión.";
-        signupPanel.classList.remove("show");
-        loginPanel.classList.add("show");
+
+        if (["administrador", "abmin"].includes(role)) {
+            localStorage.setItem("loggedInAdmin", JSON.stringify(newUser));
+            loginError.textContent = "";
+            window.authModal?.close?.();
+            alert("✅ Cuenta administrativa creada y sesión iniciada.");
+            document.querySelector("admin-profile")?.render?.();
+            document.querySelector("course-admin-panel")?.render?.();
+            document.querySelector("user-session-panel")?.render?.();
+            document.querySelector("course-form")?.connectedCallback?.();
+        } else {
+            loginError.textContent = "✅ Cuenta creada. Inicia sesión.";
+            signupPanel.classList.remove("show");
+            loginPanel.classList.add("show");
+        }
     });
 
     // =============================
@@ -155,7 +172,10 @@ window.addEventListener("DOMContentLoaded", () => {
             // Redirección opcional por rol
             if (["maestro", "administrador", "abmin"].includes(user.role)) {
                 document.querySelector("course-admin-panel")?.render?.();
+                document.querySelector("admin-profile")?.render?.();
+                document.querySelector("course-form")?.connectedCallback?.();
             }
+            document.querySelector("user-session-panel")?.render?.();
         } else {
             loginError.textContent = "❌ Email o contraseña incorrectos.";
             loginForm.classList.add("shake");

@@ -61,6 +61,9 @@ class AuthModal extends HTMLElement {
                             <label for="signupPassword">Contraseña</label>
                             <input type="password" id="signupPassword" placeholder="••••••••" required />
 
+                            <label for="signupAdminCode">Código administrativo (opcional)</label>
+                            <input type="password" id="signupAdminCode" placeholder="Ingresa ADMIN123 si corresponde" />
+
                             <button type="submit" class="btn-primary">Registrarse</button>
 
                             <p class="switch-text">¿Ya tienes cuenta?

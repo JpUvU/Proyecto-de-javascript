@@ -10,9 +10,12 @@
     <script src="/js/auth-modal.js" defer></script>
     <script src="/js/login.js" defer></script>
     <script src="/js/hero-carousel.js"></script>
+    <script src="/js/components/curso.js" defer></script>
     <script src="/js/components/course-form.js" defer></script>
     <script src="/js/components/course-list.js" defer></script>
     <script src="/js/components/course-admin-panel.js"></script>
+    <script src="/js/components/admin-profile.js" defer></script>
+    <script src="/js/components/user-session-panel.js" defer></script>
   </head>
 
   <body>
@@ -27,9 +30,9 @@
       </form>
 
       <ul class="navbar-menu">
-        <li><a href="#">Cursos</a></li>
-        <li><a href="#">Empresas</a></li>
-        <li><a href="#">Precios</a></li>
+        <li><a href="#courses-section">Cursos</a></li>
+        <li><a href="#my-courses-section">Mis cursos</a></li>
+        <li><a href="#admin-panel-section">Administrador</a></li>
       </ul>
 
       <div class="navbar-actions">
@@ -38,13 +41,17 @@
       </div>
     </nav>
 
+    <user-session-panel></user-session-panel>
     <auth-modal></auth-modal>
     <hero-carousel></hero-carousel>
-    <section style="padding: 60px 0;">
+    <section id="courses-section" style="padding: 60px 0;">
         <h2 style="text-align:center;color:#22e784;">Cursos disponibles</h2>
+        <admin-profile id="admin-panel-section"></admin-profile>
+        <div id="my-courses-section">
+          <course-admin-panel></course-admin-panel>
+        </div>
         <course-form></course-form>
         <course-list></course-list>
-        <course-admin-panel></course-admin-panel>
     </section>
 
 

@@ -95,12 +95,14 @@ class CourseForm extends HTMLElement {
       }));
 
       const data = JSON.parse(localStorage.getItem("lmsData")) || { users: [], courses: [] };
+      const teachers = [{ id: user.id, name: user.name }];
       data.courses.push({
         id: Date.now(),
         title,
         description,
         teacherId: user.id,
-        teacherName: user.name,
+        teacherName: teachers.map(t => t.name).join(", "),
+        teachers,
         media,
         createdAt: new Date().toISOString()
       });
@@ -109,7 +111,9 @@ class CourseForm extends HTMLElement {
       alert(" Curso subido correctamente.");
       form.reset();
 
-      document.querySelector("course-list")?.connectedCallback();
+      document.querySelector("course-list")?.connectedCallback?.();
+      document.querySelector("course-admin-panel")?.render?.();
+      document.querySelector("admin-profile")?.render?.();
     });
   }
 }
